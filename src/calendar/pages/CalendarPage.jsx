@@ -7,8 +7,8 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { CalendarEvent, CalendarModal, FabAddNew, Navbar, FabDelete } from "../";
 
 import { localizer, getMessagesES } from '../../helpers';
-import { useState } from 'react';
-import { useUiStore, useCalendarStore } from '../../hooks';
+import { useEffect, useState } from 'react';
+import { useUiStore, useCalendarStore, useAuthStore } from '../../hooks';
 
 
 // DEFINIMOS UN EVENTO POR DEFECTO 
@@ -31,18 +31,22 @@ import { useUiStore, useCalendarStore } from '../../hooks';
 // ESTA ES LA PAGINA DEL CALENDARIO AQUI ES DONDE SE MOSTRARA EL CALENDARIO EL CUAL HEMOS IMPORTADO DE LA LIBRERIA REACT-BIG-CALENDAR
 export const CalendarPage = () => {
 
+  const { user } = useAuthStore();
+  
   const { openDateModal } = useUiStore();
 
-  const { events, setActiveEvent } = useCalendarStore();
+  const { events, setActiveEvent, startLoadingEvents } = useCalendarStore();
 
   const [ lastView, setlastView ] = useState( localStorage.getItem('lastView') || 'week' );
 
   // FUNCION PARA APLICAR ESTILOS AL EVENTO DEL CALENDARIO
   const eventStyleGetter = ( event, start, end, isSelected ) =>{
 
+    const isMyEvent = ( user.uid === event.user._id ) || ( user.uid === event.user.uid ) ;
+
     // DEFINIMOS EL ESTILO QUE TENDRA EL EVENTO
     const style ={
-      backgroundColor: '#347CF7',
+      backgroundColor: isMyEvent ? '#347CF7' : '#465660',
       borderRadius: '0px',
       opacity: 0.8,
       color: 'white'
@@ -68,6 +72,11 @@ export const CalendarPage = () => {
     localStorage.setItem('lastView', event);
     setlastView( event );
   }
+
+  useEffect(() => {
+    startLoadingEvents();
+  }, [])
+  
 
   return (
     <>
